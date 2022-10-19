@@ -1,19 +1,21 @@
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
-import { PrismaService } from 'src/prisma/prisma.service';
-import { AppModule } from '../src/app.module';
 import * as pactum from 'pactum';
-import { AuthDto } from 'src/auth/dto';
-import { EditUserDto } from 'src/user/dto';
-import { CreateBookmarkDto, EditBookmarkDto } from 'src/bookmark/dto';
+import { AppModule } from '../src/app.module';
+import { AuthDto } from '../src/auth/dto';
+import { CreateBookmarkDto, EditBookmarkDto } from '../src/bookmark/dto';
+import { PrismaService } from '../src/prisma/prisma.service';
+import { EditUserDto } from '../src/user/dto';
 
 describe('App e2e', () => {
   let app: INestApplication;
   let prisma: PrismaService;
+
   beforeAll(async () => {
     const moduleRef = await Test.createTestingModule({
       imports: [AppModule],
     }).compile();
+
     app = moduleRef.createNestApplication();
     app.useGlobalPipes(
       new ValidationPipe({
@@ -22,20 +24,23 @@ describe('App e2e', () => {
     );
     await app.init();
     await app.listen(3333);
+
     prisma = app.get(PrismaService);
     await prisma.cleanDb();
     pactum.request.setBaseUrl('http://localhost:3333');
   });
+
   afterAll(() => {
     app.close();
   });
+
   describe('Auth', () => {
     const dto: AuthDto = {
       email: 'vlad@gmail.com',
       password: '123',
     };
     describe('Signup', () => {
-      it.todo('Should throw exception if email is empty', () => {
+      it('should throw if email empty', () => {
         return pactum
           .spec()
           .post('/auth/signup')
@@ -44,7 +49,7 @@ describe('App e2e', () => {
           })
           .expectStatus(400);
       });
-      it.todo('Should throw exception if password is empty', () => {
+      it('should throw if password empty', () => {
         return pactum
           .spec()
           .post('/auth/signup')
@@ -53,10 +58,10 @@ describe('App e2e', () => {
           })
           .expectStatus(400);
       });
-      it.todo('Should throw exception if no body provided', () => {
+      it('should throw if no body provided', () => {
         return pactum.spec().post('/auth/signup').expectStatus(400);
       });
-      it.todo('Should Signup', () => {
+      it('should signup', () => {
         return pactum
           .spec()
           .post('/auth/signup')
@@ -64,8 +69,9 @@ describe('App e2e', () => {
           .expectStatus(201);
       });
     });
+
     describe('Signin', () => {
-      it.todo('Should throw exception if email is empty', () => {
+      it('should throw if email empty', () => {
         return pactum
           .spec()
           .post('/auth/signin')
@@ -74,7 +80,7 @@ describe('App e2e', () => {
           })
           .expectStatus(400);
       });
-      it.todo('Should throw exception if password is empty', () => {
+      it('should throw if password empty', () => {
         return pactum
           .spec()
           .post('/auth/signin')
@@ -83,10 +89,10 @@ describe('App e2e', () => {
           })
           .expectStatus(400);
       });
-      it.todo('Should throw exception if no body provided', () => {
+      it('should throw if no body provided', () => {
         return pactum.spec().post('/auth/signin').expectStatus(400);
       });
-      it.todo('Should Signin', () => {
+      it('should signin', () => {
         return pactum
           .spec()
           .post('/auth/signin')
@@ -96,24 +102,25 @@ describe('App e2e', () => {
       });
     });
   });
+
   describe('User', () => {
     describe('Get me', () => {
-      it('Should get current user', () => {
+      it('should get current user', () => {
         return pactum
           .spec()
           .get('/users/me')
           .withHeaders({
             Authorization: 'Bearer $S{userAt}',
           })
-          .expectStatus(200)
-          .inspect();
+          .expectStatus(200);
       });
     });
+
     describe('Edit user', () => {
-      it('Should edit user', () => {
+      it('should edit user', () => {
         const dto: EditUserDto = {
-          firstName: 'Anum',
-          email: 'anum@gmail.com',
+          firstName: 'Vladimir',
+          email: 'vlad@codewithvlad.com',
         };
         return pactum
           .spec()
@@ -128,9 +135,10 @@ describe('App e2e', () => {
       });
     });
   });
+
   describe('Bookmarks', () => {
     describe('Get empty bookmarks', () => {
-      it('Should get bookmarks', () => {
+      it('should get bookmarks', () => {
         return pactum
           .spec()
           .get('/bookmarks')
@@ -141,12 +149,13 @@ describe('App e2e', () => {
           .expectBody([]);
       });
     });
+
     describe('Create bookmark', () => {
       const dto: CreateBookmarkDto = {
-        title: 'First Bokmark',
+        title: 'First Bookmark',
         link: 'https://www.youtube.com/watch?v=d6WC5n9G_sM',
       };
-      it('Should create bookmark', () => {
+      it('should create bookmark', () => {
         return pactum
           .spec()
           .post('/bookmarks')
@@ -158,8 +167,9 @@ describe('App e2e', () => {
           .stores('bookmarkId', 'id');
       });
     });
+
     describe('Get bookmarks', () => {
-      it('Should get bookmark', () => {
+      it('should get bookmarks', () => {
         return pactum
           .spec()
           .get('/bookmarks')
@@ -170,8 +180,9 @@ describe('App e2e', () => {
           .expectJsonLength(1);
       });
     });
+
     describe('Get bookmark by id', () => {
-      it('Should get bookmark by id', () => {
+      it('should get bookmark by id', () => {
         return pactum
           .spec()
           .get('/bookmarks/{id}')
@@ -183,40 +194,42 @@ describe('App e2e', () => {
           .expectBodyContains('$S{bookmarkId}');
       });
     });
+
     describe('Edit bookmark by id', () => {
       const dto: EditBookmarkDto = {
-        title: 'Lorem ipsum dolor sit amet',
+        title:
+          'Kubernetes Course - Full Beginners Tutorial (Containerize Your Apps!)',
         description:
-          'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vestibulum eu tincidunt odio. Vivamus volutpat est sed massa malesuada rhoncus. Praesent vitae massa cursus, euismod justo id, dapibus felis. Quisque imperdiet in ex quis egestas. Aenean sed fermentum arcu.',
+          'Learn how to use Kubernetes in this complete course. Kubernetes makes it possible to containerize applications and simplifies app deployment to production.',
       };
-      it('Should edit bookmark', () => {
+      it('should edit bookmark', () => {
         return pactum
           .spec()
-          .get('/bookmarks/{id}')
+          .patch('/bookmarks/{id}')
           .withPathParams('id', '$S{bookmarkId}')
-          .withBody(dto)
           .withHeaders({
             Authorization: 'Bearer $S{userAt}',
           })
+          .withBody(dto)
           .expectStatus(200)
           .expectBodyContains(dto.title)
-          .expectBodyContains(dto.description)
-          .inspect();
+          .expectBodyContains(dto.description);
       });
     });
-    describe('Delete bookmark', () => {
-      it('Should delete bookmark', () => {
+
+    describe('Delete bookmark by id', () => {
+      it('should delete bookmark', () => {
         return pactum
           .spec()
-          .get('/bookmarks/{id}')
+          .delete('/bookmarks/{id}')
           .withPathParams('id', '$S{bookmarkId}')
           .withHeaders({
             Authorization: 'Bearer $S{userAt}',
           })
-          .expectStatus(204)
-          .inspect();
+          .expectStatus(204);
       });
-      it('Should get empty bookmarks', () => {
+
+      it('should get empty bookmarks', () => {
         return pactum
           .spec()
           .get('/bookmarks')
