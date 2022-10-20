@@ -15,7 +15,6 @@ export class UserService {
         ...dto,
       },
     });
-    // console.log('User', user);
     delete user.hash;
     return user;
   }
